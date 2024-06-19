@@ -11,6 +11,8 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -77,14 +79,20 @@ class RegionResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('businessEntity.name'),
-                Tables\Columns\TextColumn::make('division.name'),
+                Tables\Columns\TextColumn::make('businessEntity.name')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('division.name')
+                    ->toggleable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('business_entity_id')
-                    ->options(BusinessEntity::pluck('name', 'id')),
-                Tables\Filters\SelectFilter::make('division_id')
-                    ->options(Division::pluck('name', 'id')),
+                SelectFilter::make('businessEntity')
+                    ->relationship('businessEntity', 'name')
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('division')
+                    ->relationship('division', 'name')
+                    ->searchable()
+                    ->preload(),
             ])
             ->defaultSort('name', 'asc')
             ->actions([
@@ -95,7 +103,15 @@ class RegionResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->deferLoading()
+            ->groups([
+                Group::make('businessEntity.name')
+                    ->collapsible(),
+                Group::make('division.name')
+                    ->collapsible(),
+            ])
+            ->groupingDirectionSettingHidden();
     }
 
     public static function getPages(): array
