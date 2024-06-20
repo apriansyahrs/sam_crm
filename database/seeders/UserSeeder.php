@@ -16,6 +16,8 @@ class UserSeeder extends Seeder
     {
         User::create([
             'name' => 'Super Admin',
+            'username' => 'admin',
+            'is_active' => '1',
             'email' => 'admin@dev.com',
             'email_verified_at' => Carbon::now(),
             'password' => bcrypt('password'),
@@ -23,11 +25,11 @@ class UserSeeder extends Seeder
 
         User::create([
             'name' => 'User',
+            'username' => 'user',
+            'is_active' => '1',
             'email' => 'user@dev.com',
             'email_verified_at' => Carbon::now(),
             'password' => bcrypt('password'),
         ])->syncRoles('User');
-
-
     }
 }

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Cluster extends Model
 {
@@ -23,17 +25,22 @@ class Cluster extends Model
         'region_id' => 'int',
     ];
 
-    public function businessEntity()
+    public function user(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
+    public function businessEntity(): BelongsTo
     {
         return $this->belongsTo(BusinessEntity::class);
     }
 
-    public function division()
+    public function division(): BelongsTo
     {
         return $this->belongsTo(Division::class);
     }
 
-    public function region()
+    public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class);
     }
