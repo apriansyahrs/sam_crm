@@ -17,6 +17,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -97,7 +98,59 @@ class UserResource extends Resource
                 // Tables\Columns\TagsColumn::make('roles.name'),
             ])
             ->filters([
-                //
+                Filter::make('region')
+                    ->form([
+                        Select::make('businessEntity')
+                            ->label('Business Entity')
+                            ->options(BusinessEntity::orderBy('name', 'asc')->pluck('name', 'id')->toArray())
+                            ->reactive()
+                            ->searchable()
+                            ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                                // Reset division and region when businessEntity is changed
+                                $set('division', null);
+                                $set('region', null);
+                            }),
+
+                        Select::make('division')
+                            ->label('Division')
+                            ->options(function (callable $get) {
+                                $businessEntityId = $get('businessEntity');
+                                if ($businessEntityId) {
+                                    return Division::where('business_entity_id', $businessEntityId)->orderBy('name', 'asc')->pluck('name', 'id');
+                                }
+                                return [];
+                            })
+                            ->reactive()
+                            ->searchable()
+                            ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                                // Reset region when division is changed
+                                $set('region', null);
+                            }),
+
+                        Select::make('region')
+                            ->label('Region')
+                            ->searchable()
+                            ->options(function (callable $get) {
+                                $divisionId = $get('division');
+                                if ($divisionId) {
+                                    return Region::where('division_id', $divisionId)->orderBy('name', 'asc')->pluck('name', 'id');
+                                }
+                                return [];
+                            })
+                            ->reactive(),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if ($data['businessEntity']) {
+                            $query->where('business_entity_id', $data['businessEntity']);
+                        }
+                        if ($data['division']) {
+                            $query->where('division_id', $data['division']);
+                        }
+                        if ($data['region']) {
+                            $query->where('region_id', $data['region']);
+                        }
+                        return $query;
+                    }),
             ])
             ->actions([
                 Impersonate::make()

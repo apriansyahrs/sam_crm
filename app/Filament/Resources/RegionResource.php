@@ -8,9 +8,11 @@ use App\Models\BusinessEntity;
 use App\Models\Division;
 use App\Models\Region;
 use Filament\Forms;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
@@ -85,14 +87,39 @@ class RegionResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
-                SelectFilter::make('businessEntity')
-                    ->relationship('businessEntity', 'name')
-                    ->searchable()
-                    ->preload(),
-                SelectFilter::make('division')
-                    ->relationship('division', 'name')
-                    ->searchable()
-                    ->preload(),
+                Filter::make('region')
+                    ->form([
+                        Select::make('businessEntity')
+                            ->label('Business Entity')
+                            ->options(BusinessEntity::orderBy('name', 'asc')->pluck('name', 'id')->toArray())
+                            ->reactive()
+                            ->searchable()
+                            ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                                // Reset division and region when businessEntity is changed
+                                $set('division', null);
+                            }),
+
+                        Select::make('division')
+                            ->label('Division')
+                            ->options(function (callable $get) {
+                                $businessEntityId = $get('businessEntity');
+                                if ($businessEntityId) {
+                                    return Division::where('business_entity_id', $businessEntityId)->orderBy('name', 'asc')->pluck('name', 'id');
+                                }
+                                return [];
+                            })
+                            ->reactive()
+                            ->searchable(),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if ($data['businessEntity']) {
+                            $query->where('business_entity_id', $data['businessEntity']);
+                        }
+                        if ($data['division']) {
+                            $query->where('division_id', $data['division']);
+                        }
+                        return $query;
+                    }),
             ])
             ->defaultSort('name', 'asc')
             ->actions([

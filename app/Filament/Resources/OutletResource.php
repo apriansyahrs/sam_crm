@@ -33,7 +33,32 @@ class OutletResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('code')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('businessEntity.name')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('division.name')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('region.name')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('address')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('district')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('owner')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('telp')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('radius')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('limit')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('latlong')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->toggleable(),
             ])
             ->filters([
                 //
