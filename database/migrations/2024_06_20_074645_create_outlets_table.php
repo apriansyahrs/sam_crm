@@ -23,11 +23,11 @@ return new class extends Migration
             $table->unsignedBigInteger('region_id')->index('region_id');
             $table->unsignedBigInteger('cluster_id')->index('cluster_id');
             $table->string('district');
-            $table->string('photo_shop_sign');
-            $table->string('photo_front');
-            $table->string('photo_left');
-            $table->string('photo_right');
-            $table->string('photo_ktp');
+            $table->string('photo_shop_sign')->nullable();
+            $table->string('photo_front')->nullable();
+            $table->string('photo_left')->nullable();
+            $table->string('photo_right')->nullable();
+            $table->string('photo_ktp')->nullable();
             $table->string('video')->nullable();
             $table->integer('limit')->nullable();
             $table->integer('radius')->nullable();
