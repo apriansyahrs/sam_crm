@@ -3,8 +3,11 @@
 namespace App\Filament\Resources\OutletResource\Pages;
 
 use App\Filament\Resources\OutletResource;
+use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions;
+use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\ListRecords;
+use pxlrbt\FilamentExcel\Actions\Pages\ExportAction;
 
 class ListOutlets extends ListRecords
 {
@@ -14,6 +17,14 @@ class ListOutlets extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
+            ActionGroup::make([
+                ExportAction::make()
+                    ->color('success')
+                    ->icon('heroicon-o-arrow-up-tray'),
+                ExcelImportAction::make()
+                    ->color("info"),
+            ])->icon('heroicon-m-ellipsis-vertical')
+                ->button(),
         ];
     }
 }

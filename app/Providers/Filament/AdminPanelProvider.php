@@ -30,7 +30,12 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(Login::class)
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Blue,
+                'warning' => Color::Yellow,
+                'danger' => Color::Red,
+                'success' => Color::Green,
+                'info' => Color::Purple,
+                'light' => Color::hex('#fafafa'),
             ])
             ->sidebarFullyCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

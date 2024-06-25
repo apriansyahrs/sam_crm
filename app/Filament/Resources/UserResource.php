@@ -17,6 +17,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,8 +32,6 @@ class UserResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
     protected static ?int $navigationSort = 1;
-
-    // protected static ?string $navigationGroup = 'Akses';
 
     public static function form(Form $form): Form
     {
@@ -87,15 +86,15 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('username')
+                TextColumn::make('username')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('businessEntity.name'),
-                Tables\Columns\TextColumn::make('division.name'),
-                Tables\Columns\TextColumn::make('region.name'),
-                Tables\Columns\TextColumn::make('cluster.name'),
-                // Tables\Columns\TagsColumn::make('roles.name'),
+                TextColumn::make('businessEntity.name'),
+                TextColumn::make('division.name'),
+                TextColumn::make('region.name'),
+                TextColumn::make('cluster.name'),
+                // TagsColumn::make('roles.name'),
             ])
             ->filters([
                 Filter::make('region')

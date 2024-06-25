@@ -25,7 +25,7 @@ class Cluster extends Model
         'region_id' => 'int',
     ];
 
-    public function user(): HasMany
+    public function users(): HasMany
     {
         return $this->hasMany(User::class);
     }
