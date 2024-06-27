@@ -71,4 +71,9 @@ class Outlet extends Model
     {
         return $this->belongsTo(Region::class);
     }
+
+    public function cluster(): BelongsTo
+    {
+        return $this->belongsTo(Cluster::class);
+    }
 }

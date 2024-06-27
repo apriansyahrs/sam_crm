@@ -9,7 +9,9 @@ use App\Models\Cluster;
 use App\Models\Division;
 use App\Models\Outlet;
 use App\Models\Region;
+use App\Models\User;
 use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Wizard;
@@ -17,6 +19,7 @@ use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -45,11 +48,9 @@ class OutletResource extends Resource
                                 ->maxLength(255)
                                 ->columnSpan(6),
                             TextInput::make('owner')
-                                ->required()
                                 ->maxLength(255)
                                 ->columnSpan(6),
                             TextInput::make('telp')
-                                ->required()
                                 ->maxLength(255)
                                 ->columnSpan(6),
                             TextInput::make('address')
@@ -57,7 +58,6 @@ class OutletResource extends Resource
                                 ->maxLength(255)
                                 ->columnSpan(6),
                             TextInput::make('latlong')
-                                ->required()
                                 ->maxLength(255)
                                 ->columnSpan(6),
                         ])
@@ -144,6 +144,22 @@ class OutletResource extends Resource
                                 ->columnSpan(6),
                         ])
                         ->columns(12),
+                    Step::make('Dokumen Information')
+                        ->schema([
+                            FileUpload::make('photo_shop_sign')
+                                ->columnSpan(6),
+                            FileUpload::make('photo_front')
+                                ->columnSpan(6),
+                            FileUpload::make('photo_left')
+                                ->columnSpan(6),
+                            FileUpload::make('photo_right')
+                                ->columnSpan(6),
+                            FileUpload::make('photo_ktp')
+                                ->columnSpan(6),
+                            FileUpload::make('video')
+                                ->columnSpan(6),
+                        ])
+                        ->columns(12),
                 ])->columnSpanFull(),
             ]);
     }
@@ -152,32 +168,120 @@ class OutletResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('code')
+                TextColumn::make('code')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('businessEntity.name')
+                TextColumn::make('businessEntity.name')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('division.name')
+                TextColumn::make('division.name')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('region.name')
+                TextColumn::make('region.name')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('cluster.name')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('address')
+                TextColumn::make('name')
+                    ->searchable()
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('district')
+                TextColumn::make('address')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('owner')
+                TextColumn::make('district')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('telp')
+                TextColumn::make('owner')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('radius')
+                TextColumn::make('telp')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('limit')
+                TextColumn::make('radius')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('latlong')
+                TextColumn::make('limit')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('latlong')
+                    ->formatStateUsing(function ($state) {
+                        // Mengasumsikan latlong dalam format "latitude,longitude"
+                        $coordinates = explode(',', $state);
+                        $latitude = trim($coordinates[0]);
+                        $longitude = trim($coordinates[1]);
+
+                        // Membentuk URL Google Maps
+                        $url = "https://www.google.com/maps/search/?api=1&query={$latitude},{$longitude}";
+
+                        // Mengembalikan tautan HTML
+                        return "<a href='{$url}' target='_blank'>Lihat Lokasi</a>";
+                    })
+                    ->html()
                     ->toggleable(),
+                TextColumn::make('status')
+                    ->toggleable(),
+                TextColumn::make('TM')
+                    ->label('TM')
+                    ->formatStateUsing(function ($record) {
+                        $user = User::where('division_id', $record->division_id)
+                            ->where('region_id', $record->region_id)
+                            ->where('cluster_id', $record->cluster_id)
+                            ->where('role_id', 3)
+                            ->first();
+                        return $user->tm->nama_lengkap ?? '-';
+                    }),
+                TextColumn::make('DSC')
+                    ->label('DSC')
+                    ->formatStateUsing(function ($record) {
+                        $user = User::where('division_id', $record->division_id)
+                            ->where('region_id', $record->region_id)
+                            ->where('role_id', 2)
+                            ->first();
+                        return $user->nama_lengkap ?? '-';
+                    }),
+                TextColumn::make('DSF')
+                    ->label('DSF')
+                    ->formatStateUsing(function ($record) {
+                        $user = User::where('division_id', $record->division_id)
+                            ->where('region_id', $record->region_id)
+                            ->where('cluster_id', $record->cluster_id)
+                            ->where('role_id', 3)
+                            ->first();
+                        return $user->nama_lengkap ?? '-';
+                    }),
+                TextColumn::make('photo_shop_sign')
+                    ->formatStateUsing(function ($record) {
+                        return $record->photo_shop_sign
+                            ? "<a href='" . asset('storage/' . $record->photo_shop_sign) . "' target='_blank'>View</a>"
+                            : '-';
+                    })
+                    ->html(),
+                TextColumn::make('photo_front')
+                    ->formatStateUsing(function ($record) {
+                        return $record->photo_front
+                            ? "<a href='" . asset('storage/' . $record->photo_front) . "' target='_blank'>View</a>"
+                            : '-';
+                    })
+                    ->html(),
+                TextColumn::make('photo_left')
+                    ->formatStateUsing(function ($record) {
+                        return $record->photo_left
+                            ? "<a href='" . asset('storage/' . $record->photo_left) . "' target='_blank'>View</a>"
+                            : '-';
+                    })
+                    ->html(),
+                TextColumn::make('photo_right')
+                    ->formatStateUsing(function ($record) {
+                        return $record->photo_right
+                            ? "<a href='" . asset('storage/' . $record->photo_right) . "' target='_blank'>View</a>"
+                            : '-';
+                    })
+                    ->html(),
+                TextColumn::make('photo_ktp')
+                    ->formatStateUsing(function ($record) {
+                        return $record->photo_ktp
+                            ? "<a href='" . asset('storage/' . $record->photo_ktp) . "' target='_blank'>View</a>"
+                            : '-';
+                    })
+                    ->html(),
+                TextColumn::make('video')
+                    ->label('Video')
+                    ->formatStateUsing(function ($record) {
+                        return $record->video
+                            ? "<a href='" . asset('storage/' . $record->video) . "' target='_blank'>View</a>"
+                            : '-';
+                    })
+                    ->html(),
             ])
             ->filters([
                 //
@@ -197,6 +301,12 @@ class OutletResource extends Resource
         return [
             //
         ];
+    }
+
+    protected function getTableQuery()
+    {
+        // Query utama Anda untuk mengambil data dari database
+        return User::query();
     }
 
     public static function getPages(): array
