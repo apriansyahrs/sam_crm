@@ -19,12 +19,14 @@ class ListPlanVisits extends ListRecords
             Actions\CreateAction::make(),
             ActionGroup::make([
                 ExportAction::make()
+                    ->label('Export')
                     ->color('success')
                     ->icon('heroicon-o-arrow-up-tray'),
                 ExcelImportAction::make()
                     ->color("info"),
             ])->icon('heroicon-m-ellipsis-vertical')
-                ->button(),
+                ->button()
+                ->color('warning'),
         ];
     }
 }

@@ -22,11 +22,12 @@ return new class extends Migration
             $table->unsignedBigInteger('region_id')->index('region_id')->nullable();
             $table->unsignedBigInteger('cluster_id')->index('cluster_id')->nullable();
             $table->unsignedBigInteger('cluster_id2')->index('cluster_id2')->nullable();
-            // $table->unsignedBigInteger('position_id')->index('position_id');
-            // $table->unsignedBigInteger('position_id')->index('position_id');
+            $table->unsignedBigInteger('position_id')->index('position_id')->nullable();
             $table->unsignedBigInteger('tm_id')->index('tm_id')->nullable();
             $table->boolean('is_active')->default(true);
             $table->string('password');
+            $table->string('id_notif')->nullable();
+            $table->string('profile_photo_path')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

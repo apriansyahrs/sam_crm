@@ -16,6 +16,7 @@ class ListNoos extends ListRecords
         return [
             Actions\CreateAction::make(),
             ExportAction::make()
+                    ->label('Export')
                     ->color('success')
                     ->icon('heroicon-o-arrow-up-tray'),
         ];

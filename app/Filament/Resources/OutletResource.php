@@ -12,6 +12,8 @@ use App\Models\Region;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Wizard;
+use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -31,96 +33,118 @@ class OutletResource extends Resource
     {
         return $form
             ->schema([
-                    TextInput::make('code')
-                        ->required()
-                        ->maxLength(255),
-                    TextInput::make('name')
-                        ->required()
-                        ->maxLength(255),
-                    TextInput::make('owner')
-                        ->required()
-                        ->maxLength(255),
-                    TextInput::make('telp')
-                        ->required()
-                        ->maxLength(255),
-                    TextInput::make('address')
-                        ->required()
-                        ->maxLength(255),
-                    TextInput::make('latlong')
-                        ->required()
-                        ->maxLength(255),
-                    Select::make('business_entity_id')
-                        ->label('Business Entity')
-                        ->options(BusinessEntity::orderBy('name', 'asc')->pluck('name', 'id')->toArray())
-                        ->reactive()
-                        ->searchable()
-                        ->afterStateUpdated(function ($state, callable $get, callable $set) {
-                            // Reset division, region, and cluster when business_entity_id is changed
-                            $set('division_id', null);
-                            $set('region_id', null);
-                            $set('cluster_id', null);
-                        }),
-
-                    Select::make('division_id')
-                        ->label('Division')
-                        ->options(function (callable $get) {
-                            $businessEntityId = $get('business_entity_id');
-                            if ($businessEntityId) {
-                                return Division::where('business_entity_id', $businessEntityId)->orderBy('name', 'asc')->pluck('name', 'id')->toArray();
-                            }
-                            return [];
-                        })
-                        ->reactive()
-                        ->searchable()
-                        ->afterStateUpdated(function ($state, callable $get, callable $set) {
-                            // Reset region and cluster when division_id is changed
-                            $set('region_id', null);
-                            $set('cluster_id', null);
-                        }),
-
-                    Select::make('region_id')
-                        ->label('Region')
-                        ->searchable()
-                        ->options(function (callable $get) {
-                            $divisionId = $get('division_id');
-                            if ($divisionId) {
-                                return Region::where('division_id', $divisionId)->orderBy('name', 'asc')->pluck('name', 'id')->toArray();
-                            }
-                            return [];
-                        })
-                        ->reactive()
-                        ->afterStateUpdated(function ($state, callable $get, callable $set) {
-                            // Reset cluster when region_id is changed
-                            $set('cluster_id', null);
-                        }),
-
-                    Select::make('cluster_id')
-                        ->label('Cluster')
-                        ->searchable()
-                        ->options(function (callable $get) {
-                            $regionId = $get('region_id');
-                            if ($regionId) {
-                                return Cluster::where('region_id', $regionId)->orderBy('name', 'asc')->pluck('name', 'id')->toArray();
-                            }
-                            return [];
-                        })
-                        ->reactive(),
-                    TextInput::make('district')
-                        ->required()
-                        ->maxLength(255),
-                    TextInput::make('radius')
-                        ->required()
-                        ->maxLength(255),
-                    Select::make('status')
-                        ->required()
-                        ->options([
-                            'MAINTAIN' => 'MAINTAIN',
-                            'UNMAINTAIN' => 'UNMAINTAIN',
-                            'UNPRODUCTIVE' => 'UNPRODUCTIVE',
-                        ]),
-                    TextInput::make('limit')
-                        ->required()
-                        ->maxLength(255),
+                Wizard::make([
+                    Step::make('Outlet Details')
+                        ->schema([
+                            TextInput::make('code')
+                                ->required()
+                                ->maxLength(255)
+                                ->columnSpan(6),
+                            TextInput::make('name')
+                                ->required()
+                                ->maxLength(255)
+                                ->columnSpan(6),
+                            TextInput::make('owner')
+                                ->required()
+                                ->maxLength(255)
+                                ->columnSpan(6),
+                            TextInput::make('telp')
+                                ->required()
+                                ->maxLength(255)
+                                ->columnSpan(6),
+                            TextInput::make('address')
+                                ->required()
+                                ->maxLength(255)
+                                ->columnSpan(6),
+                            TextInput::make('latlong')
+                                ->required()
+                                ->maxLength(255)
+                                ->columnSpan(6),
+                        ])
+                        ->columns(12),
+                    Step::make('Business Information')
+                        ->schema([
+                            Select::make('business_entity_id')
+                                ->label('Business Entity')
+                                ->options(BusinessEntity::orderBy('name', 'asc')->pluck('name', 'id')->toArray())
+                                ->reactive()
+                                ->searchable()
+                                ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                                    $set('division_id', null);
+                                    $set('region_id', null);
+                                    $set('cluster_id', null);
+                                })
+                                ->columnSpan(6),
+                            Select::make('division_id')
+                                ->label('Division')
+                                ->options(function (callable $get) {
+                                    $businessEntityId = $get('business_entity_id');
+                                    if ($businessEntityId) {
+                                        return Division::where('business_entity_id', $businessEntityId)->orderBy('name', 'asc')->pluck('name', 'id')->toArray();
+                                    }
+                                    return [];
+                                })
+                                ->reactive()
+                                ->searchable()
+                                ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                                    $set('region_id', null);
+                                    $set('cluster_id', null);
+                                })
+                                ->columnSpan(6),
+                            Select::make('region_id')
+                                ->label('Region')
+                                ->options(function (callable $get) {
+                                    $divisionId = $get('division_id');
+                                    if ($divisionId) {
+                                        return Region::where('division_id', $divisionId)->orderBy('name', 'asc')->pluck('name', 'id')->toArray();
+                                    }
+                                    return [];
+                                })
+                                ->reactive()
+                                ->searchable()
+                                ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                                    $set('cluster_id', null);
+                                })
+                                ->columnSpan(6),
+                            Select::make('cluster_id')
+                                ->label('Cluster')
+                                ->options(function (callable $get) {
+                                    $regionId = $get('region_id');
+                                    if ($regionId) {
+                                        return Cluster::where('region_id', $regionId)->orderBy('name', 'asc')->pluck('name', 'id')->toArray();
+                                    }
+                                    return [];
+                                })
+                                ->reactive()
+                                ->searchable()
+                                ->columnSpan(6),
+                        ])
+                        ->columns(12),
+                    Step::make('Additional Information')
+                        ->schema([
+                            TextInput::make('district')
+                                ->required()
+                                ->maxLength(255)
+                                ->columnSpan(6),
+                            TextInput::make('radius')
+                                ->required()
+                                ->maxLength(255)
+                                ->columnSpan(6),
+                            Select::make('status')
+                                ->required()
+                                ->options([
+                                    'MAINTAIN' => 'MAINTAIN',
+                                    'UNMAINTAIN' => 'UNMAINTAIN',
+                                    'UNPRODUCTIVE' => 'UNPRODUCTIVE',
+                                ])
+                                ->columnSpan(6),
+                            TextInput::make('limit')
+                                ->required()
+                                ->maxLength(255)
+                                ->columnSpan(6),
+                        ])
+                        ->columns(12),
+                ])->columnSpanFull(),
             ]);
     }
 

@@ -36,6 +36,7 @@ class User extends Authenticatable implements FilamentUser
         'region_id',
         'cluster_id',
         'cluster_id2',
+        'position_id',
         'tm_id',
         'password',
         'is_active',
@@ -87,14 +88,25 @@ class User extends Authenticatable implements FilamentUser
         return $this->belongsTo(Region::class);
     }
 
-    public function cluster()
+    public function cluster(): BelongsTo
     {
         return $this->belongsTo(Cluster::class);
     }
 
-    public function cluster2()
+    public function cluster2(): BelongsTo
     {
         return $this->belongsTo(Cluster::class, 'cluster_id2');
+    }
+
+    public function tm(): BelongsTo
+    {
+        return $this->belongsTo(User::class,'tm_id');
+    }
+
+
+    public function position(): BelongsTo
+    {
+        return $this->belongsTo(Position::class);
     }
 
 
