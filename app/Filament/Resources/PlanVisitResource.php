@@ -16,16 +16,21 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class PlanVisitResource extends Resource
 {
     protected static ?string $model = PlanVisit::class;
-
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
-
     protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                //
+                Forms\Components\Select::make('user_id')
+                    ->relationship('user', 'name')
+                    ->required(),
+                Forms\Components\Select::make('outlet_id')
+                    ->relationship('outlet', 'name')
+                    ->required(),
+                Forms\Components\DateTimePicker::make('visit_date')
+                    ->required(),
             ]);
     }
 
@@ -33,7 +38,23 @@ class PlanVisitResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('user.name')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('outlet.name')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('visit_date')
+                    ->dateTime()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //

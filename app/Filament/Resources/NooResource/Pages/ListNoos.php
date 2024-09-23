@@ -5,7 +5,6 @@ namespace App\Filament\Resources\NooResource\Pages;
 use App\Filament\Resources\NooResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use pxlrbt\FilamentExcel\Actions\Pages\ExportAction;
 
 class ListNoos extends ListRecords
 {
@@ -15,10 +14,6 @@ class ListNoos extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
-            ExportAction::make()
-                    ->label('Export')
-                    ->color('success')
-                    ->icon('heroicon-o-arrow-up-tray'),
         ];
     }
 }

@@ -33,6 +33,7 @@ return new class extends Migration
             $table->integer('radius')->nullable();
             $table->string('latlong')->nullable();
             $table->enum('status',['MAINTAIN','UNMAINTAIN','UNPRODUCTIVE']);
+            $table->softDeletes();
             $table->timestamps();
 
             // Add foreign key constraint with cascading delete

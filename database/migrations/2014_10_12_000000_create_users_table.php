@@ -29,6 +29,7 @@ return new class extends Migration
             $table->string('id_notif')->nullable();
             $table->string('profile_photo_path')->nullable();
             $table->rememberToken();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -11,8 +11,6 @@ class BusinessEntity extends Model
 {
     use HasFactory;
 
-    protected $table = 'business_entities';
-
     protected $fillable = [
         'name',
     ];

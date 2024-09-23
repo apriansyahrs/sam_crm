@@ -49,6 +49,7 @@ return new class extends Migration
             $table->string('approved_by')->nullable();
             $table->string('notes')->nullable();
             $table->foreignId('tm_id');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

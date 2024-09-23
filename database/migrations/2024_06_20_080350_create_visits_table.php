@@ -26,6 +26,7 @@ return new class extends Migration
             $table->integer('visit_duration')->nullable();
             $table->text('picture_visit_in')->nullable();
             $table->text('picture_visit_out')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
