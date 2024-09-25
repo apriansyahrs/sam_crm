@@ -40,122 +40,135 @@ class UserResource extends Resource
     {
         return $form
             ->schema([
-                Wizard::make([
-                    Step::make('Personal Information')
-                        ->schema([
-                            TextInput::make('name')
-                                ->required()
-                                ->maxLength(255)
-                                ->columnSpan(4),
-                            TextInput::make('username')
-                                ->required()
-                                ->maxLength(255)
-                                ->columnSpan(4),
-                            Select::make('position_id')
-                                ->required()
-                                ->options(Position::orderBy('name', 'asc')->pluck('name', 'id')->toArray())
-                                ->searchable()
-                                ->columnSpan(4),
-                            TextInput::make('email')
-                                ->email()
-                                ->maxLength(255)
-                                ->columnSpan(6),
-                            DateTimePicker::make('email_verified_at')
-                                ->columnSpan(6),
-                        ])->columns(12),
-                    Step::make('Business Information')
-                        ->schema([
-                            Select::make('business_entity_id')
-                                ->label('Business Entity')
-                                ->options(BusinessEntity::orderBy('name', 'asc')->pluck('name', 'id')->toArray())
-                                ->reactive()
-                                ->searchable()
-                                ->afterStateUpdated(function ($state, callable $get, callable $set) {
-                                    // Reset dependent selects
-                                    $set('division_id', null);
-                                    $set('region_id', null);
-                                    $set('cluster_id', null);
-                                    $set('cluster_id2', null);
-                                })
-                                ->columnSpan(4),
-                            Select::make('division_id')
-                                ->label('Division')
-                                ->options(function (callable $get) {
-                                    $businessEntityId = $get('business_entity_id');
-                                    if ($businessEntityId) {
-                                        return Division::where('business_entity_id', $businessEntityId)->orderBy('name', 'asc')->pluck('name', 'id')->toArray();
-                                    }
-                                    return [];
-                                })
-                                ->reactive()
-                                ->searchable()
-                                ->afterStateUpdated(function ($state, callable $get, callable $set) {
-                                    // Reset dependent selects
-                                    $set('region_id', null);
-                                    $set('cluster_id', null);
-                                    $set('cluster_id2', null);
-                                })
-                                ->columnSpan(4),
-                            Select::make('region_id')
-                                ->label('Region')
-                                ->options(function (callable $get) {
-                                    $divisionId = $get('division_id');
-                                    if ($divisionId) {
-                                        return Region::where('division_id', $divisionId)->orderBy('name', 'asc')->pluck('name', 'id')->toArray();
-                                    }
-                                    return [];
-                                })
-                                ->reactive()
-                                ->searchable()
-                                ->afterStateUpdated(function ($state, callable $get, callable $set) {
-                                    // Reset dependent selects
-                                    $set('cluster_id', null);
-                                    $set('cluster_id2', null);
-                                })
-                                ->columnSpan(4),
-                            Select::make('cluster_id')
-                                ->label('Cluster')
-                                ->options(function (callable $get) {
-                                    $regionId = $get('region_id');
-                                    if ($regionId) {
-                                        return Cluster::where('region_id', $regionId)->orderBy('name', 'asc')->pluck('name', 'id')->toArray();
-                                    }
-                                    return [];
-                                })
-                                ->reactive()
-                                ->searchable()
-                                ->columnSpan(4),
-                            Select::make('cluster_id2')
-                                ->label('Cluster Optional')
-                                ->options(function (callable $get) {
-                                    $regionId = $get('region_id');
-                                    if ($regionId) {
-                                        return Cluster::where('region_id', $regionId)->orderBy('name', 'asc')->pluck('name', 'id')->toArray();
-                                    }
-                                    return [];
-                                })
-                                ->reactive()
-                                ->searchable()
-                                ->columnSpan(4),
-                            Select::make('tm_id')
-                                ->label('TM')
-                                ->options(User::orderBy('name', 'asc')->pluck('name', 'id')->toArray())
-                                ->searchable()
-                                ->columnSpan(4),
-                        ])->columns(12),
-                    Step::make('Account Security')
-                        ->schema([
-                            TextInput::make('password')
-                                ->password()
-                                ->dehydrateStateUsing(fn ($state) => Hash::make($state))
-                                ->dehydrated(fn ($state) => filled($state))
-                                ->required(fn (string $context): bool => $context === 'create')
-                                ->maxLength(255),
-                            Toggle::make('is_active')
-                                ->default(true)
-                                ->required(),
-                        ]),
-                ])->columnSpanFull()
+                // Personal Information
+                Forms\Components\Card::make()
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Full Name')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(6),
+                        TextInput::make('username')
+                            ->label('Username')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(6),
+                        Select::make('position_id')
+                            ->label('Position')
+                            ->required()
+                            ->options(Position::orderBy('name', 'asc')->pluck('name', 'id')->toArray())
+                            ->searchable()
+                            ->columnSpan(6),
+                        TextInput::make('email')
+                            ->label('Email')
+                            ->email()
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(6),
+                        DateTimePicker::make('email_verified_at')
+                            ->label('Email Verified At')
+                            ->columnSpan(6),
+                    ])
+                    ->columns(12) // Mengatur layout form dalam grid 12 kolom untuk lebih rapi dan terstruktur
+                    ->columnSpanFull(),
+
+                // Business Information
+                Forms\Components\Card::make()
+                    ->schema([
+                        Select::make('business_entity_id')
+                            ->label('Business Entity')
+                            ->options(BusinessEntity::orderBy('name', 'asc')->pluck('name', 'id')->toArray())
+                            ->reactive()
+                            ->searchable()
+                            ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                                // Reset dependent selects
+                                $set('division_id', null);
+                                $set('region_id', null);
+                                $set('cluster_id', null);
+                                $set('cluster_id2', null);
+                            })
+                            ->columnSpan(6),
+                        Select::make('division_id')
+                            ->label('Division')
+                            ->options(function (callable $get) {
+                                $businessEntityId = $get('business_entity_id');
+                                if ($businessEntityId) {
+                                    return Division::where('business_entity_id', $businessEntityId)
+                                        ->orderBy('name', 'asc')
+                                        ->pluck('name', 'id')->toArray();
+                                }
+                                return [];
+                            })
+                            ->reactive()
+                            ->searchable()
+                            ->columnSpan(6),
+                        Select::make('region_id')
+                            ->label('Region')
+                            ->options(function (callable $get) {
+                                $divisionId = $get('division_id');
+                                if ($divisionId) {
+                                    return Region::where('division_id', $divisionId)
+                                        ->orderBy('name', 'asc')
+                                        ->pluck('name', 'id')->toArray();
+                                }
+                                return [];
+                            })
+                            ->reactive()
+                            ->searchable()
+                            ->columnSpan(6),
+                        Select::make('cluster_id')
+                            ->label('Cluster')
+                            ->options(function (callable $get) {
+                                $regionId = $get('region_id');
+                                if ($regionId) {
+                                    return Cluster::where('region_id', $regionId)
+                                        ->orderBy('name', 'asc')
+                                        ->pluck('name', 'id')->toArray();
+                                }
+                                return [];
+                            })
+                            ->reactive()
+                            ->searchable()
+                            ->columnSpan(6),
+                        Select::make('cluster_id2')
+                            ->label('Cluster Optional')
+                            ->options(function (callable $get) {
+                                $regionId = $get('region_id');
+                                if ($regionId) {
+                                    return Cluster::where('region_id', $regionId)
+                                        ->orderBy('name', 'asc')
+                                        ->pluck('name', 'id')->toArray();
+                                }
+                                return [];
+                            })
+                            ->reactive()
+                            ->searchable()
+                            ->columnSpan(6),
+                        Select::make('tm_id')
+                            ->label('TM')
+                            ->options(User::orderBy('name', 'asc')->pluck('name', 'id')->toArray())
+                            ->searchable()
+                            ->columnSpan(6),
+                    ])
+                    ->columns(12)
+                    ->columnSpanFull(),
+
+                // Account Security
+                Forms\Components\Card::make()
+                    ->schema([
+                        TextInput::make('password')
+                            ->label('Password')
+                            ->password()
+                            ->dehydrateStateUsing(fn ($state) => Hash::make($state))
+                            ->dehydrated(fn ($state) => filled($state))
+                            ->required(fn (string $context): bool => $context === 'create')
+                            ->maxLength(255),
+                        Toggle::make('is_active')
+                            ->label('Active Status')
+                            ->default(true)
+                            ->required(),
+                    ])
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -228,6 +241,7 @@ class UserResource extends Resource
                         return $query;
                     }),
             ])
+            ->defaultSort('name', 'asc')
             ->actions([
                 Impersonate::make()
                     ->redirectTo(route('filament.admin.pages.dashboard')),

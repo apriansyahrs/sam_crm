@@ -23,104 +23,151 @@ class NooResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('code')
-                    ->maxLength(255),
-                Forms\Components\Select::make('business_entity_id')
-                    ->relationship('businessEntity', 'name')
-                    ->required(),
-                Forms\Components\Select::make('division_id')
-                    ->relationship('division', 'name')
-                    ->required(),
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\Textarea::make('address')
-                    ->required()
-                    ->columnSpanFull(),
-                Forms\Components\TextInput::make('owner')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('phone')
-                    ->tel()
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('optional_phone')
-                    ->tel()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('ktp_outlet')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('district')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\Select::make('region_id')
-                    ->relationship('region', 'name')
-                    ->required(),
-                Forms\Components\Select::make('cluster_id')
-                    ->relationship('cluster', 'name')
-                    ->required(),
-                Forms\Components\TextInput::make('photo_shop_sign')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('photo_front')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('photo_left')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('photo_right')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('photo_ktp')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('video')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('oppo')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('vivo')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('realme')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('samsung')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('xiaomi')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('fl')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('latlong')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('limit')
-                    ->numeric(),
-                Forms\Components\TextInput::make('status')
-                    ->required(),
-                Forms\Components\TextInput::make('created_by')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\DateTimePicker::make('rejected_at'),
-                Forms\Components\TextInput::make('rejected_by')
-                    ->maxLength(255),
-                Forms\Components\DateTimePicker::make('confirmed_at'),
-                Forms\Components\TextInput::make('confirmed_by')
-                    ->maxLength(255),
-                Forms\Components\DateTimePicker::make('approved_at'),
-                Forms\Components\TextInput::make('approved_by')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('notes')
-                    ->maxLength(255),
-                Forms\Components\Select::make('tm_id')
-                    ->relationship('tm', 'name')
-                    ->required(),
+                // Informasi Umum
+                Forms\Components\Card::make()
+                    ->schema([
+                        Forms\Components\TextInput::make('code')
+                            ->label('Code')
+                            ->maxLength(255),
+                        Forms\Components\Select::make('business_entity_id')
+                            ->label('Business Entity')
+                            ->relationship('businessEntity', 'name')
+                            ->required(),
+                        Forms\Components\Select::make('division_id')
+                            ->label('Division')
+                            ->relationship('division', 'name')
+                            ->required(),
+                        Forms\Components\TextInput::make('name')
+                            ->label('Outlet Name')
+                            ->required()
+                            ->maxLength(255),
+                    ])
+                    ->columns(2), // Atur jadi dua kolom untuk form yang lebih rapih
+
+                // Kontak & Alamat
+                Forms\Components\Card::make()
+                    ->schema([
+                        Forms\Components\Textarea::make('address')
+                            ->label('Address')
+                            ->required()
+                            ->columnSpanFull(),
+                        Forms\Components\TextInput::make('owner')
+                            ->label('Owner')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('phone')
+                            ->label('Phone')
+                            ->tel()
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('optional_phone')
+                            ->label('Optional Phone')
+                            ->tel()
+                            ->maxLength(255),
+                    ])
+                    ->columns(2), // Dua kolom untuk kontak dan alamat
+
+                // Foto & KTP
+                Forms\Components\Card::make()
+                    ->schema([
+                        Forms\Components\FileUpload::make('photo_shop_sign')
+                            ->label('Photo of Shop Sign')
+                            ->required(),
+                        Forms\Components\FileUpload::make('photo_front')
+                            ->label('Front Photo')
+                            ->required(),
+                        Forms\Components\FileUpload::make('photo_left')
+                            ->label('Left Photo')
+                            ->required(),
+                        Forms\Components\FileUpload::make('photo_right')
+                            ->label('Right Photo')
+                            ->required(),
+                        Forms\Components\FileUpload::make('photo_ktp')
+                            ->label('KTP Photo')
+                            ->required(),
+                    ])
+                    ->columns(2), // Dua kolom untuk foto agar lebih rapi
+
+                // Lokasi & Status
+                Forms\Components\Card::make()
+                    ->schema([
+                        Forms\Components\TextInput::make('latlong')
+                            ->label('Latitude/Longitude')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\Select::make('status')
+                            ->label('Status')
+                            ->options([
+                                'active' => 'Active',
+                                'inactive' => 'Inactive',
+                            ])
+                            ->required(),
+                        Forms\Components\TextInput::make('limit')
+                            ->label('Limit')
+                            ->numeric()
+                            ->placeholder('Enter limit if applicable'),
+                    ])
+                    ->columns(2),
+
+                // Foto Tambahan & Video
+                Forms\Components\Card::make()
+                    ->schema([
+                        Forms\Components\FileUpload::make('video')
+                            ->label('Video')
+                            ->required(),
+                        Forms\Components\TextInput::make('oppo')
+                            ->label('Oppo')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('vivo')
+                            ->label('Vivo')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('realme')
+                            ->label('Realme')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('samsung')
+                            ->label('Samsung')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('xiaomi')
+                            ->label('Xiaomi')
+                            ->required()
+                            ->maxLength(255),
+                    ])
+                    ->columns(2),
+
+                // Metadata
+                Forms\Components\Card::make()
+                    ->schema([
+                        Forms\Components\TextInput::make('created_by')
+                            ->label('Created By')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\DateTimePicker::make('rejected_at')
+                            ->label('Rejected At'),
+                        Forms\Components\TextInput::make('rejected_by')
+                            ->label('Rejected By')
+                            ->maxLength(255),
+                        Forms\Components\DateTimePicker::make('confirmed_at')
+                            ->label('Confirmed At'),
+                        Forms\Components\TextInput::make('confirmed_by')
+                            ->label('Confirmed By')
+                            ->maxLength(255),
+                        Forms\Components\DateTimePicker::make('approved_at')
+                            ->label('Approved At'),
+                        Forms\Components\TextInput::make('approved_by')
+                            ->label('Approved By')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('notes')
+                            ->label('Notes')
+                            ->maxLength(255),
+                    ])
+                    ->columns(2),
             ]);
     }
+
 
     public static function table(Table $table): Table
     {
@@ -220,6 +267,7 @@ class NooResource extends Resource
             ->filters([
                 //
             ])
+            ->defaultSort('created_at', 'desc')
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])

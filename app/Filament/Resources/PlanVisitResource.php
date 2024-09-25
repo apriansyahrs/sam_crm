@@ -20,45 +20,62 @@ class PlanVisitResource extends Resource
     protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                Forms\Components\Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->required(),
-                Forms\Components\Select::make('outlet_id')
-                    ->relationship('outlet', 'name')
-                    ->required(),
-                Forms\Components\DateTimePicker::make('visit_date')
-                    ->required(),
-            ]);
-    }
+{
+    return $form
+        ->schema([
+            Forms\Components\Card::make([
+                Forms\Components\Grid::make(2) // Menggunakan grid untuk lebih teratur
+                    ->schema([
+                        Forms\Components\Select::make('user_id')
+                            ->relationship('user', 'name')
+                            ->required()
+                            ->searchable()
+                            ->native(false)
+                            ->label('Select User')
+                            ->placeholder('Choose a user...'), // Menambahkan placeholder
+
+                        Forms\Components\Select::make('outlet_id')
+                            ->relationship('outlet', 'name')
+                            ->required()
+                            ->searchable()
+                            ->native(false)
+                            ->label('Select Outlet')
+                            ->placeholder('Choose an outlet...'), // Menambahkan placeholder
+                    ]),
+
+                Forms\Components\DatePicker::make('visit_date')
+                    ->required()
+                    ->label('Visit Date')
+                    ->native(false)
+                    ->placeholder('Select visit date...'), // Menambahkan placeholder
+            ])
+            ->columns(1) // Menambahkan Card dengan single column layout untuk fokus yang lebih baik
+        ]);
+}
+
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
-                    ->numeric()
-                    ->sortable(),
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('outlet.name')
-                    ->numeric()
-                    ->sortable(),
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('outlet.code'),
                 Tables\Columns\TextColumn::make('visit_date')
-                    ->dateTime()
-                    ->sortable(),
+                    ->date(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
+                    ->date()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
+                    ->date()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
             ])
+            ->defaultSort('visit_date', 'desc')
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])

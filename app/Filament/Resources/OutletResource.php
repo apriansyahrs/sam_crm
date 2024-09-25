@@ -36,133 +36,135 @@ class OutletResource extends Resource
     {
         return $form
             ->schema([
-                Wizard::make([
-                    Step::make('Outlet Details')
-                        ->schema([
-                            TextInput::make('code')
-                                ->required()
-                                ->maxLength(255)
-                                ->columnSpan(6),
-                            TextInput::make('name')
-                                ->required()
-                                ->maxLength(255)
-                                ->columnSpan(6),
-                            TextInput::make('owner')
-                                ->maxLength(255)
-                                ->columnSpan(6),
-                            TextInput::make('telp')
-                                ->maxLength(255)
-                                ->columnSpan(6),
-                            TextInput::make('address')
-                                ->required()
-                                ->maxLength(255)
-                                ->columnSpan(6),
-                            TextInput::make('latlong')
-                                ->maxLength(255)
-                                ->columnSpan(6),
-                        ])
-                        ->columns(12),
-                    Step::make('Business Information')
-                        ->schema([
-                            Select::make('business_entity_id')
-                                ->label('Business Entity')
-                                ->options(BusinessEntity::orderBy('name', 'asc')->pluck('name', 'id')->toArray())
-                                ->reactive()
-                                ->searchable()
-                                ->afterStateUpdated(function ($state, callable $get, callable $set) {
-                                    $set('division_id', null);
-                                    $set('region_id', null);
-                                    $set('cluster_id', null);
-                                })
-                                ->columnSpan(6),
-                            Select::make('division_id')
-                                ->label('Division')
-                                ->options(function (callable $get) {
-                                    $businessEntityId = $get('business_entity_id');
-                                    if ($businessEntityId) {
-                                        return Division::where('business_entity_id', $businessEntityId)->orderBy('name', 'asc')->pluck('name', 'id')->toArray();
-                                    }
-                                    return [];
-                                })
-                                ->reactive()
-                                ->searchable()
-                                ->afterStateUpdated(function ($state, callable $get, callable $set) {
-                                    $set('region_id', null);
-                                    $set('cluster_id', null);
-                                })
-                                ->columnSpan(6),
-                            Select::make('region_id')
-                                ->label('Region')
-                                ->options(function (callable $get) {
-                                    $divisionId = $get('division_id');
-                                    if ($divisionId) {
-                                        return Region::where('division_id', $divisionId)->orderBy('name', 'asc')->pluck('name', 'id')->toArray();
-                                    }
-                                    return [];
-                                })
-                                ->reactive()
-                                ->searchable()
-                                ->afterStateUpdated(function ($state, callable $get, callable $set) {
-                                    $set('cluster_id', null);
-                                })
-                                ->columnSpan(6),
-                            Select::make('cluster_id')
-                                ->label('Cluster')
-                                ->options(function (callable $get) {
-                                    $regionId = $get('region_id');
-                                    if ($regionId) {
-                                        return Cluster::where('region_id', $regionId)->orderBy('name', 'asc')->pluck('name', 'id')->toArray();
-                                    }
-                                    return [];
-                                })
-                                ->reactive()
-                                ->searchable()
-                                ->columnSpan(6),
-                        ])
-                        ->columns(12),
-                    Step::make('Additional Information')
-                        ->schema([
-                            TextInput::make('district')
-                                ->required()
-                                ->maxLength(255)
-                                ->columnSpan(6),
-                            TextInput::make('radius')
-                                ->required()
-                                ->maxLength(255)
-                                ->columnSpan(6),
-                            Select::make('status')
-                                ->required()
-                                ->options([
-                                    'MAINTAIN' => 'MAINTAIN',
-                                    'UNMAINTAIN' => 'UNMAINTAIN',
-                                    'UNPRODUCTIVE' => 'UNPRODUCTIVE',
-                                ])
-                                ->columnSpan(6),
-                            TextInput::make('limit')
-                                ->required()
-                                ->maxLength(255)
-                                ->columnSpan(6),
-                        ])
-                        ->columns(12),
-                    Step::make('Dokumen Information')
-                        ->schema([
-                            FileUpload::make('photo_shop_sign')
-                                ->columnSpan(6),
-                            FileUpload::make('photo_front')
-                                ->columnSpan(6),
-                            FileUpload::make('photo_left')
-                                ->columnSpan(6),
-                            FileUpload::make('photo_right')
-                                ->columnSpan(6),
-                            FileUpload::make('photo_ktp')
-                                ->columnSpan(6),
-                            FileUpload::make('video')
-                                ->columnSpan(6),
-                        ])
-                        ->columns(12),
-                ])->columnSpanFull(),
+                // Bagian Informasi Outlet
+                Forms\Components\Card::make()
+                    ->schema([
+                        TextInput::make('code')
+                            ->label('Outlet Code')
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('name')
+                            ->label('Outlet Name')
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('owner')
+                            ->label('Owner')
+                            ->maxLength(255),
+                        TextInput::make('telp')
+                            ->label('Phone Number')
+                            ->maxLength(255),
+                        TextInput::make('address')
+                            ->label('Address')
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('latlong')
+                            ->label('Latitude/Longitude')
+                            ->maxLength(255)
+                            ->hint('Format: Latitude,Longitude'),
+                    ])
+                    ->columns(2) // Atur agar tampil dalam dua kolom
+
+                    // Bagian Informasi Bisnis
+                    ->schema([
+                        Select::make('business_entity_id')
+                            ->label('Business Entity')
+                            ->options(BusinessEntity::orderBy('name', 'asc')->pluck('name', 'id')->toArray())
+                            ->required()
+                            ->reactive(),
+                        Select::make('division_id')
+                            ->label('Division')
+                            ->options(function (callable $get) {
+                                $businessEntityId = $get('business_entity_id');
+                                if ($businessEntityId) {
+                                    return Division::where('business_entity_id', $businessEntityId)
+                                        ->orderBy('name', 'asc')
+                                        ->pluck('name', 'id')->toArray();
+                                }
+                                return [];
+                            })
+                            ->reactive()
+                            ->searchable(),
+                        Select::make('region_id')
+                            ->label('Region')
+                            ->options(function (callable $get) {
+                                $divisionId = $get('division_id');
+                                if ($divisionId) {
+                                    return Region::where('division_id', $divisionId)
+                                        ->orderBy('name', 'asc')
+                                        ->pluck('name', 'id')->toArray();
+                                }
+                                return [];
+                            })
+                            ->reactive()
+                            ->searchable(),
+                        Select::make('cluster_id')
+                            ->label('Cluster')
+                            ->options(function (callable $get) {
+                                $regionId = $get('region_id');
+                                if ($regionId) {
+                                    return Cluster::where('region_id', $regionId)
+                                        ->orderBy('name', 'asc')
+                                        ->pluck('name', 'id')->toArray();
+                                }
+                                return [];
+                            })
+                            ->reactive()
+                            ->searchable(),
+                    ])
+                    ->columns(2), // Pengelompokan dalam dua kolom
+
+                // Bagian Informasi Tambahan
+                Forms\Components\Card::make()
+                    ->schema([
+                        TextInput::make('district')
+                            ->label('District')
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('radius')
+                            ->label('Radius')
+                            ->required()
+                            ->numeric(),
+                        Select::make('status')
+                            ->label('Status')
+                            ->options([
+                                'MAINTAIN' => 'MAINTAIN',
+                                'UNMAINTAIN' => 'UNMAINTAIN',
+                                'UNPRODUCTIVE' => 'UNPRODUCTIVE',
+                            ])
+                            ->required(),
+                        TextInput::make('limit')
+                            ->label('Limit')
+                            ->numeric()
+                            ->required(),
+                    ])
+                    ->columns(2),
+
+                // Bagian Dokumen dan Foto
+                Forms\Components\Card::make()
+                    ->schema([
+                        FileUpload::make('photo_shop_sign')
+                            ->label('Photo Shop Sign')
+                            ->required(),
+                        FileUpload::make('photo_front')
+                            ->label('Photo Front')
+                            ->required(),
+                        FileUpload::make('photo_left')
+                            ->label('Photo Left')
+                            ->required(),
+                        FileUpload::make('photo_right')
+                            ->label('Photo Right')
+                            ->required(),
+                        FileUpload::make('photo_ktp')
+                            ->label('KTP Photo')
+                            ->required(),
+                        FileUpload::make('video')
+                            ->label('Video')
+                            ->required(),
+                    ])
+                    ->columns(2), // Semua file dalam dua kolom untuk lebih rapi
             ]);
     }
+
 
     public static function table(Table $table): Table
     {
