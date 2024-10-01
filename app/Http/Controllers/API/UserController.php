@@ -12,100 +12,183 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function fetch(Request $request){
-        $user = User::with(['cluster','region','role','divisi','badanusaha'])->where('id',Auth::user()->id)->first();
-        return ResponseFormatter::success([ 'user' => $user, 'message' => 'Data profile user berhasil diambil']);
+    /**
+     * Fetch user profile with relationships.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function fetch(Request $request)
+    {
+        $user = User::with(['region', 'cluster', 'position', 'division', 'businessEntity', 'tm'])
+            ->where('username', $request->username)
+            ->first();
+
+        return ResponseFormatter::success([
+            'user' => $user,
+            'message' => 'Data profile user berhasil diambil'
+        ]);
     }
 
-    public function login(Request $request){
-        /**
+    /**
+     * Handle user login.
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
      */
+    public function login(Request $request)
+    {
         try {
-            if($request->version != '1.0.3')
-            {
-                return ResponseFormatter::error([
-                    'message' => 'Unauthorized'
-                ],'Gagal login, Update versi aplikasi SAM anda ke V1.0.3.', 500);
-            }
             $request->validate([
-                'username' => 'required',
-                'password' => 'required',
-                'notif_id' => 'required',
+                /**
+                 * Version of the app.
+                 * @var string
+                 * @example 1.0.3
+                 */
+                'version' => 'required|string',
+
+                /**
+                 * Username for login.
+                 * @var string
+                 * @example adiasm
+                 */
+                'username' => 'required|string',
+
+                /**
+                 * Password for login.
+                 * @var string
+                 * @example complete123
+                 */
+                'password' => 'required|string',
+
+                /**
+                 * Notification ID for push notifications.
+                 * @var string
+                 * @example 68a4636e-c000-4dbf-bff9-c374e4a8c5ff
+                 */
+                'notif_id' => 'required|string',
             ]);
 
-            $credentials = request(['username', 'password']);
+            // Check version
+            if ($request->version !== '1.0.3') {
+                return ResponseFormatter::error(null, 'Gagal login, Update versi aplikasi SAM anda ke V1.0.3.', 401);
+            }
+
+            // Attempt to log the user in
+            $credentials = $request->only(['username', 'password']);
             if (!Auth::attempt($credentials)) {
-                return ResponseFormatter::error([
-                    'message' => 'Unauthorized'
-                ],'Gagal login, cek kembali username dan password anda', 500);
+                return ResponseFormatter::error(null, 'Gagal login, cek kembali username dan password anda', 401);
             }
 
-            $user = User::with(['region','cluster','role','divisi','badanusaha','tm'])->where('username', $request->username)->first();
-            if ( !Hash::check($request->password, $user->password, [])) {
-                throw new Exception('Invalid Credentials');
+            $user = User::with(['region', 'cluster', 'position', 'division', 'businessEntity', 'tm'])
+                ->where('username', $request->username)
+                ->first();
+
+            if (!Hash::check($request->password, $user->password)) {
+                return ResponseFormatter::error(null, 'Invalid Credentials', 401);
             }
-            $user->id_notif = $request->notif_id;
-            $user->update();
+
+            // Update notification ID
+            $user->update(['id_notif' => $request->notif_id]);
 
             $tokenResult = $user->createToken('authToken')->plainTextToken;
+
             return ResponseFormatter::success([
                 'access_token' => $tokenResult,
                 'token_type' => 'Bearer',
                 'user' => $user
-            ],'Authenticated');
+            ], 'Authenticated');
         } catch (Exception $error) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
-                'error' => $error,
-            ],'Authentication Failed', 500);
+                'error' => $error->getMessage(),
+            ], 'Authentication Failed', 500);
         }
     }
 
-    public function logout(Request $request){
-        $token = $request->user()->currentAccessToken()->delete();
+    /**
+     * Logout user by revoking token.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
 
-        return ResponseFormatter::success($token,'Token Revoked');
+        return ResponseFormatter::success(null, 'Token Revoked');
     }
 
-    public function register(Request $request){
+    /**
+     * Register new user.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
+    public function register(Request $request)
+    {
         try {
             $request->validate([
-                'username' => ['required', 'string', 'min:3','max:255','unique:users'],
-                'nama_lengkap' => ['required', 'string'],
-                'region' => ['required','string'],
-                'cluster_id' => ['required'],
-                'password' => $this->passwordRules()
+                /**
+                 * Username for login.
+                 * @var string
+                 * @example soleh123456
+                 */
+                'username' => 'required|string|min:3|max:255|unique:users',
+
+                /**
+                 * Full name of the user.
+                 * @var string
+                 * @example Soleh Somad
+                 */
+                'name' => 'required|string',
+
+                /**
+                 * Region of the user.
+                 * @var string
+                 * @example Jogja
+                 */
+                'region' => 'required|string',
+
+                /**
+                 * Cluster ID.
+                 * @var int
+                 * @example 1
+                 */
+                'cluster_id' => 'required|integer',
+
+                /**
+                 * Password for login.
+                 * @var string
+                 * @example janggut123
+                 */
+                'password' => 'required|string|min:8|confirmed',
             ]);
 
-                User::create([
-                    'username' => $request->username,
-                    'nama_lengkap' => $request->nama_lengkap,
-                    'region' => $request->region,
-                    'cluster_id' => $request->cluster_id,
-                    'password' => Hash::make($request->password),
-                ]);
+            // Create the user
+            $user = User::create([
+                'username' => $request->username,
+                'name' => $request->name,
+                'region' => $request->region,
+                'cluster_id' => $request->cluster_id,
+                'password' => Hash::make($request->password),
+            ]);
 
-
-
-            $user = User::where('username', $request->username)->first();
-
+            // Generate token for the newly created user
             $tokenResult = $user->createToken('authToken')->plainTextToken;
 
             return ResponseFormatter::success([
                 'access_token' => $tokenResult,
                 'token_type' => 'Bearer',
                 'user' => $user
-            ],'User Registered');
+            ], 'User Registered');
         } catch (Exception $error) {
             return ResponseFormatter::error([
                 'message' => 'Something went wrong',
-                'error' => $error,
-            ],'Authentication Failed', 500);
+                'error' => $error->getMessage(),
+            ], 'Registration Failed', 500);
         }
     }
-
-
 }

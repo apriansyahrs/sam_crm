@@ -69,3 +69,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('lead', [LeadController::class, 'create']);
     Route::post('lead/update', [LeadController::class, 'update']);
 });
+
+Route::post('user/register',[UserController::class,'register']);
+Route::post('user/login',[UserController::class,'login']);

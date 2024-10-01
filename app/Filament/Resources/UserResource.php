@@ -62,7 +62,6 @@ class UserResource extends Resource
                         TextInput::make('email')
                             ->label('Email')
                             ->email()
-                            ->required()
                             ->maxLength(255)
                             ->columnSpan(6),
                         DateTimePicker::make('email_verified_at')

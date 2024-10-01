@@ -104,7 +104,6 @@ class User extends Authenticatable implements FilamentUser
         return $this->belongsTo(User::class,'tm_id');
     }
 
-
     public function position(): BelongsTo
     {
         return $this->belongsTo(Position::class);
