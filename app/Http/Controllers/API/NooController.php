@@ -19,26 +19,31 @@ use Illuminate\Support\Facades\Auth;
 
 class NooController extends Controller
 {
+    /**
+     * Fetch leads based on user role and filters.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function fetch(Request $request)
     {
         try {
             $user = Auth::user();
-            $badanusahaId = $user->badanusaha_id;
-            $divisiId = $user->divisi_id;
+            $businessEntityId = $user->business_entity_id;
+            $divisionId = $user->division_id;
             $regionId = $user->region_id;
             $clusterId = $user->cluster_id;
             $roleId = $user->role_id;
 
-            $query = Noo::with(['badanusaha', 'cluster', 'region', 'divisi']);
+            // Base query with relationships
+            $query = Noo::with(['businessEntity', 'cluster', 'region', 'division']);
 
             switch ($roleId) {
-                #ASM
-                case 1:
-                    // Cek jika akunnya adalah sodikc maka ambil data dari region Bigtasik, Bigcrb, Bigpwt, Bigbdg, Bigkarawang dengan divisi realme
-                    if ($user->id === 158) {
+                case 1: // ASM Role
+                    if ($user->id === 158) { // Special case for user ID 158
                         $noos = $query
                             ->whereIn('region_id', [13, 27, 26, 23, 24])
-                            ->where('divisi_id', 4)
+                            ->where('division_id', 4)
                             ->latest()
                             ->get();
                     } else {
@@ -47,115 +52,113 @@ class NooController extends Controller
                             ->latest()
                             ->get();
                     }
-
-                    // Rule lama
-                    // $noos = $query
-                    // ->where('tm_id', $user->id)
-                    // ->latest()
-                    // ->get();
-
                     break;
-                #ASC
-                case 2:
+
+                case 2: // ASC Role
                     $noos = $query
-                        ->where('badanusaha_id', $badanusahaId)
-                        ->where('divisi_id', $divisiId)
+                        ->where('business_entity_id', $businessEntityId)
+                        ->where('division_id', $divisionId)
                         ->where('region_id', $regionId)
                         ->latest()
                         ->get();
                     break;
-                #DSF/DM
-                case 3:
+
+                case 3: // DSF/DM Role
                     $noos = $query
-                        ->where('badanusaha_id', $badanusahaId)
-                        ->where('divisi_id', $divisiId)
+                        ->where('business_entity_id', $businessEntityId)
+                        ->where('division_id', $divisionId)
                         ->where('region_id', $regionId)
                         ->where('cluster_id', $clusterId)
-                        ->orderBy('updated_at','DESC')
+                        ->orderBy('updated_at', 'DESC')
                         ->get();
                     break;
-                #COO
-                case 6:
+
+                case 6: // COO Role
                     $noos = $query
                         ->latest()
                         ->get();
                     break;
-                #CSO
-                case 8:
+
+                case 8: // CSO Role
                     $noos = $query
-                        ->where('divisi_id', 4)
+                        ->where('division_id', 4)
                         ->latest()
                         ->get();
                     break;
-                #RKAM
-                case 9:
+
+                case 9: // RKAM Role
                     $noos = $query
                         ->where('tm_id', $user->id)
                         ->latest()
                         ->get();
                     break;
-                #KAM
-                case 10:
+
+                case 10: // KAM Role
                     $noos = $query
-                        ->where('badanusaha_id', $badanusahaId)
-                        ->where('divisi_id', $divisiId)
+                        ->where('business_entity_id', $businessEntityId)
+                        ->where('division_id', $divisionId)
                         ->where('region_id', $regionId)
                         ->latest()
                         ->get();
                     break;
 
-                #CSO FAST EV
-                case 11:
+                case 11: // CSO FAST EV Role
                     $noos = $query
-                        ->where('divisi_id', 7)
+                        ->where('division_id', 7)
                         ->latest()
                         ->get();
                     break;
 
-                default:
-                    $noos = Noo::with(['badanusaha', 'cluster', 'region', 'divisi'])->where('badanusaha_id',2)->orWhere('badanusaha_id',4)->whereIn('status',['PENDING','CONFIRMED','REJECTED'])->latest()->get();
+                default: // Default role with specific filtering
+                    $noos = Noo::with(['businessEntity', 'cluster', 'region', 'division'])
+                        ->whereIn('business_entity_id', [2, 4])
+                        ->whereIn('status', ['PENDING', 'CONFIRMED', 'REJECTED'])
+                        ->latest()
+                        ->get();
                     break;
             }
 
-            return ResponseFormatter::success(
-                $noos,
-                'fetch noo success',
-            );
+            return ResponseFormatter::success($noos, 'Fetch Noo success.');
         } catch (Exception $err) {
-            return ResponseFormatter::error([
-                'message' => $err,
-            ], 'something wrong', 500);
+            return ResponseFormatter::error(['message' => $err->getMessage()], 'Something went wrong', 500);
         }
     }
 
+    /**
+     * Fetch all leads.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function all(Request $request)
     {
         try {
-            $noos = Noo::with(['badanusaha', 'cluster', 'region', 'divisi'])->get();
+            $noos = Noo::with(['businessEntity', 'cluster', 'region', 'division'])->get();
 
-            return ResponseFormatter::success(
-                $noos,
-                'fetch noo success',
-            );
+            return ResponseFormatter::success($noos, 'Fetch Noo success.');
         } catch (Exception $err) {
-            return ResponseFormatter::error([
-                'message' => $err,
-            ], 'something wrong', 500);
+            return ResponseFormatter::error(['message' => $err->getMessage()], 'Something went wrong', 500);
         }
     }
 
+    /**
+     * Handle new NOO submission.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function submit(Request $request)
     {
         try {
             $user = Auth::user();
             $data = [
-                'nama_outlet' => $request->nama_outlet,
-                'alamat_outlet' => $request->alamat_outlet,
-                'nama_pemilik_outlet' => $request->nama_pemilik,
-                'nomer_tlp_outlet' => $request->nomer_pemilik,
-                'nomer_wakil_outlet' => $request->nomer_perwakilan,
+                'name' => $request->nama_outlet,
+                'address' => $request->alamat_outlet,
+                'owner' => $request->nama_pemilik,
+                'phone' => $request->nomer_pemilik,
+                'optional_phone' => $request->nomer_perwakilan,
                 'ktp_outlet' => $request->ktpnpwp,
-                'distric' => $request->distric,
+                'district' => $request->distric,
                 'oppo' => $request->oppo,
                 'vivo' => $request->vivo,
                 'samsung' => $request->samsung,
@@ -166,127 +169,103 @@ class NooController extends Controller
                 'created_by' => $user->nama_lengkap,
                 'tm_id' => $user->tm->id,
             ];
+
+            // Handle different roles and assign related IDs
             switch ($user->role_id) {
-                #ASM
-                case 1:
-                    $badanusaha_id = BadanUsaha::where('name', $request->bu)->first()->id;
-                    $divisi_id = Division::where('badanusaha_id', $badanusaha_id)->where('name', $request->div)->first()->id;
-                    $region_id = Region::where('badanusaha_id', $badanusaha_id)->where('divisi_id', $divisi_id)->where('name', $request->reg)->first()->id;
-                    $cluster_id = Cluster::where('badanusaha_id', $badanusaha_id)->where('divisi_id', $divisi_id)->where('region_id', $region_id)->where('name', $request->clus)->first()->id;
-                    $data['badanusaha_id'] = $badanusaha_id;
-                    $data['divisi_id'] = $divisi_id;
-                    $data['region_id'] = $region_id;
-                    $data['cluster_id'] = $cluster_id;
+                case 1: // ASM Role
+                case 9: // RKAM Role
+                    $businessEntityId = BusinessEntity::where('name', $request->bu)->first()->id;
+                    $divisionId = Division::where('business_entity_id', $businessEntityId)->where('name', $request->div)->first()->id;
+                    $regionId = Region::where('business_entity_id', $businessEntityId)->where('division_id', $divisionId)->where('name', $request->reg)->first()->id;
+                    $clusterId = Cluster::where('business_entity_id', $businessEntityId)->where('division_id', $divisionId)->where('region_id', $regionId)->where('name', $request->clus)->first()->id;
+                    $data['business_entity_id'] = $businessEntityId;
+                    $data['division_id'] = $divisionId;
+                    $data['region_id'] = $regionId;
+                    $data['cluster_id'] = $clusterId;
                     break;
 
-                #ASC
-                case 2:
-                    $data['badanusaha_id'] = $user->badanusaha_id;
-                    $data['divisi_id'] = $user->divisi_id;
+                case 2: // ASC Role
+                case 10: // KAM Role
+                    $data['business_entity_id'] = $user->business_entity_id;
+                    $data['division_id'] = $user->division_id;
                     $data['region_id'] = $user->region_id;
-                    $data['cluster_id'] = Cluster::where('badanusaha_id', $user->badanusaha_id)->where('divisi_id', $user->divisi_id)->where('region_id', $user->region_id)->where('name', $request->clus)->first()->id;
-                    error_log($data['cluster_id']);
-                    break;
-
-                #RKAM
-                case 9:
-                    $badanusaha_id = BadanUsaha::where('name', $request->bu)->first()->id;
-                    $divisi_id = Division::where('badanusaha_id', $badanusaha_id)->where('name', $request->div)->first()->id;
-                    $region_id = Region::where('badanusaha_id', $badanusaha_id)->where('divisi_id', $divisi_id)->where('name', $request->reg)->first()->id;
-                    $cluster_id = Cluster::where('badanusaha_id', $badanusaha_id)->where('divisi_id', $divisi_id)->where('region_id', $region_id)->where('name', $request->clus)->first()->id;
-                    $data['badanusaha_id'] = $badanusaha_id;
-                    $data['divisi_id'] = $divisi_id;
-                    $data['region_id'] = $region_id;
-                    $data['cluster_id'] = $cluster_id;
-                    break;
-
-                #KAM
-                case 10:
-                    $data['badanusaha_id'] = $user->badanusaha_id;
-                    $data['divisi_id'] = $user->divisi_id;
-                    $data['region_id'] = $user->region_id;
-                    $data['cluster_id'] = Cluster::where('badanusaha_id', $user->badanusaha_id)->where('divisi_id', $user->divisi_id)->where('region_id', $user->region_id)->where('name', $request->clus)->first()->id;
-                    error_log($data['cluster_id']);
+                    $data['cluster_id'] = Cluster::where('business_entity_id', $user->business_entity_id)
+                        ->where('division_id', $user->division_id)
+                        ->where('region_id', $user->region_id)
+                        ->where('name', $request->clus)
+                        ->first()
+                        ->id;
                     break;
 
                 default:
-                    $data['badanusaha_id'] = $user->badanusaha_id;
-                    $data['divisi_id'] = $user->divisi_id;
+                    $data['business_entity_id'] = $user->business_entity_id;
+                    $data['division_id'] = $user->division_id;
                     $data['region_id'] = $user->region_id;
                     $data['cluster_id'] = $user->cluster_id;
                     break;
             }
 
+            // Handle photo uploads
             for ($i = 0; $i <= 4; $i++) {
-                $namaFoto = $request->file('photo' . $i)->getClientOriginalName();
-                if (Str::contains($namaFoto, 'fotodepan')) {
-                    $data['poto_depan'] = $namaFoto;
-                } else if (Str::contains($namaFoto, 'fotokanan')) {
-                    $data['poto_kanan'] = $namaFoto;
-                } else if (Str::contains($namaFoto, 'fotokiri')) {
-                    $data['poto_kiri'] = $namaFoto;
-                } else if (Str::contains($namaFoto, 'fotoktp')) {
-                    $data['poto_ktp'] = $namaFoto;
-                } else {
-                    $data['poto_shop_sign'] = $namaFoto;
+                if ($request->hasFile('photo' . $i)) {
+                    $file = $request->file('photo' . $i);
+                    $namaFoto = $file->getClientOriginalName();
+
+                    if (Str::contains($namaFoto, 'fotodepan')) {
+                        $data['photo_front'] = $namaFoto;
+                    } elseif (Str::contains($namaFoto, 'fotokanan')) {
+                        $data['photo_right'] = $namaFoto;
+                    } elseif (Str::contains($namaFoto, 'fotokiri')) {
+                        $data['photo_left'] = $namaFoto;
+                    } elseif (Str::contains($namaFoto, 'fotoktp')) {
+                        $data['photo_ktp'] = $namaFoto;
+                    } else {
+                        $data['photo_shop_sign'] = $namaFoto;
+                    }
+                    $file->move(storage_path('app/public/'), $namaFoto);
                 }
-                $request->file('photo' . $i)->move(storage_path('app/public/'), $namaFoto);
             }
 
+            // Handle video upload
             if ($request->hasFile('video')) {
-                $name = $request->file('video')->getClientOriginalName();
-                $data['video'] = 'noo-' . time() . $name;
-                $request->file('video')->move(storage_path('app/public/'), 'noo-' . time() . $name);
+                $video = $request->file('video');
+                $name = 'noo-' . time() . $video->getClientOriginalName();
+                $data['video'] = $name;
+                $video->move(storage_path('app/public/'), $name);
             }
 
-            switch ($user->id) {
-                #ASM
+            // Notification IDs based on role
+            $notifId = [];
+            switch ($user->role_id) {
                 case 1:
-                    $notifId = array();
-                    array_push($notifId, User::where('role_id', 4)->first()->id_notif);
-                    break;
-                #ASC
-                case 2:
-                    $notifId = array();
-                    #notif ar
-                    array_push($notifId, User::where('role_id', 4)->first()->id_notif);
-                    #notif tm
-                    array_push($notifId, $user->tm->id_notif);
-                    break;
-                #RKAM
                 case 9:
-                    $notifId = array();
                     array_push($notifId, User::where('role_id', 4)->first()->id_notif);
                     break;
-                #KAM
+                case 2:
                 case 10:
-                    $notifId = array();
-                    #notif ar
                     array_push($notifId, User::where('role_id', 4)->first()->id_notif);
-                    #notif tm
                     array_push($notifId, $user->tm->id_notif);
                     break;
                 default:
-                    $notifId = array();
-                    #notif ar
                     array_push($notifId, User::where('role_id', 4)->first()->id_notif);
-                    #notif tm
                     array_push($notifId, $user->tm->id_notif);
-                    #notif asc
-                    $asc = User::where('role_id', 2)->where('divisi_id', $user->divisi_id)->where('region_id', $user->region_id)->first()->id_notif ?? null;
-                    if ($asc) {
-                        array_push($notifId, $asc);
+                    $ascNotif = User::where('role_id', 2)->where('division_id', $user->division_id)->where('region_id', $user->region_id)->first()->id_notif ?? null;
+                    if ($ascNotif) {
+                        array_push($notifId, $ascNotif);
                     }
                     break;
             }
+
+            // Create the NOO entry
             $insert = Noo::create($data);
-            if ($insert && count($notifId) != 0) {
+            if ($insert && !empty($notifId)) {
                 SendNotif::sendMessage('Noo baru ' . $request->nama_outlet . ' ditambahkan oleh ' . Auth::user()->nama_lengkap, $notifId);
             }
-            return ResponseFormatter::success(null, 'berhasil menambahkan NOO ' . $request->nama_outlet);
+
+            return ResponseFormatter::success(null, 'Berhasil menambahkan NOO ' . $request->nama_outlet);
         } catch (Exception $e) {
             error_log($e);
-            return ResponseFormatter::error($e, 'gagal');
+            return ResponseFormatter::error($e->getMessage(), 'Gagal menambahkan NOO');
         }
     }
 

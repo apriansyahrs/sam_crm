@@ -20,9 +20,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
+Route::post('user/login',[UserController::class,'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     //USER
@@ -69,6 +67,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('lead', [LeadController::class, 'create']);
     Route::post('lead/update', [LeadController::class, 'update']);
 });
-
-Route::post('user/register',[UserController::class,'register']);
-Route::post('user/login',[UserController::class,'login']);

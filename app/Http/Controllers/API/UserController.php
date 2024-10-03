@@ -13,25 +13,28 @@ use Illuminate\Support\Facades\Hash;
 class UserController extends Controller
 {
     /**
-     * Fetch user profile with relationships.
+     * Fetch.
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function fetch(Request $request)
     {
+        $request->validate([
+            'username' => 'required|string',
+        ]);
+
         $user = User::with(['region', 'cluster', 'position', 'division', 'businessEntity', 'tm'])
             ->where('username', $request->username)
             ->first();
 
         return ResponseFormatter::success([
             'user' => $user,
-            'message' => 'Data profile user berhasil diambil'
-        ]);
+        ],'Data profile user berhasil diambil');
     }
 
     /**
-     * Handle user login.
+     * Login.
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -39,37 +42,37 @@ class UserController extends Controller
      */
     public function login(Request $request)
     {
+        $request->validate([
+            /**
+             * Version of the app.
+             * @var string
+             * @example 1.0.3
+             */
+            'version' => 'required|string',
+
+            /**
+             * Username for login.
+             * @var string
+             * @example adiasm
+             */
+            'username' => 'required|string',
+
+            /**
+             * Password for login.
+             * @var string
+             * @example complete123
+             */
+            'password' => 'required|string',
+
+            /**
+             * Notification ID for push notifications.
+             * @var string
+             * @example 68a4636e-c000-4dbf-bff9-c374e4a8c5ff
+             */
+            'notif_id' => 'required|string',
+        ]);
+
         try {
-            $request->validate([
-                /**
-                 * Version of the app.
-                 * @var string
-                 * @example 1.0.3
-                 */
-                'version' => 'required|string',
-
-                /**
-                 * Username for login.
-                 * @var string
-                 * @example adiasm
-                 */
-                'username' => 'required|string',
-
-                /**
-                 * Password for login.
-                 * @var string
-                 * @example complete123
-                 */
-                'password' => 'required|string',
-
-                /**
-                 * Notification ID for push notifications.
-                 * @var string
-                 * @example 68a4636e-c000-4dbf-bff9-c374e4a8c5ff
-                 */
-                'notif_id' => 'required|string',
-            ]);
-
             // Check version
             if ($request->version !== '1.0.3') {
                 return ResponseFormatter::error(null, 'Gagal login, Update versi aplikasi SAM anda ke V1.0.3.', 401);
@@ -108,7 +111,7 @@ class UserController extends Controller
     }
 
     /**
-     * Logout user by revoking token.
+     * Logout
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
